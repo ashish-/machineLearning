@@ -1,0 +1,38 @@
+hadoop fs -help copyToLocal
+
+hadoop fs -help get
+
+hadoop fs -ls /user/cloudera/data
+
+mkdir data
+
+cd data
+
+hadoop fs -get /user/cloudera/data/data*.txt /home/cloudera/data
+
+rm -rf /home/cloudera/data
+
+hadoop fs -get -p /user/cloudera/data/data* /home/cloudera/data
+
+/* -p is to update the file properties exactly as the source */
+
+rm -rf /home/cloudera/data
+
+hadoop fs -get -p -crc /user/cloudera/data/data* /home/cloudera/data
+
+ls -altr
+
+/* crc is checkpoint(checksum of the original file)
+
+hadoop fs -moveToLocal user/cloudera/data/data.txt .
+
+cd ../
+ 
+
+hadoop fs -rm -R user/cloudera/data/data.txt
+
+hadoop fs -moveFromLocal  /home/cloudera/data.txt     /user/cloudera/data/data.txt
+
+ls -ltr data*
+
+hadoop fs -ls /user/cloudera/data

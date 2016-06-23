@@ -1,0 +1,275 @@
+Day-1
+
+
+sudo /home/cloudera/cloudera-manager --enterprise --force     Cloudera Manager
+
+
+touch testing
+hadoop fs -put /user/cloudera
+hadoop fs -ls /user/cloudera/testing
+
+spark-shell -- scala context for spark
+pyspark     -- python context for spark
+	    -- spark sql context
+
+
+
+
+Day-2
+
+
+impala-shell
+	show databases;
+	show tables;
+	select count(1) from departments;
+	use retail_stage;
+	show tables;
+	exit;	
+
+sqoop version
+spark-shell --version
+
+run hdfs, yarn, hive, spark, impala in cloudera-manager
+hadoop version
+
+
+flume-ng version
+cd /opt/example/flume
+
+avro-tools
+hbase-shell
+	list
+	zookeper is mandatory for hbase
+
+hadoop fs -ls /user
+		In cloudera 5.5 permission for /user/spark changes to 755 so there may be some error related to this
+spark-shell --master yarn
+
+So sudo -u hdfs hadoop fs -chmod -R 777 /user/spark
+Now hadoop fs -ls /user
+spark-shell --master yarn
+
+
+
+Day-3
+
+ps -ef|grep -i manager
+ps -ef|grep -i node
+ps -fu hdfs
+ps -fu yarn
+
+mysql -u retail_dba -p
+use retail_db
+show tables
+
+hadoop fs -ls /user/cloudera
+hadoop fs -mkdir /user/cloudera/sqoop_import
+
+sqoop help
+
+sqoop list-databases \
+--connect "jdbc:mysql://quickstart.cloudera:3306" \
+--username retail_dbc \
+password cloudera
+
+sqoop list-tables \
+--connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--username retail_dbc \
+password cloudera
+
+ * It may happen that user retail_dba has not access to retrive data from table.
+   So validate it befire importing the data
+
+sqoop eval \
+--connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--username retail_dbc \
+--password cloudera \
+--query "select * from departments"
+
+ *we can do insert, update, delete, invoke using eval
+
+
+
+Day-4
+
+Hadoop job -list
+
+sqoop import --help
+
+hostname -f
+
+/* by default no of mapper is 4
+
+sqoop import-all-tables \
+-m 12 \
+--connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--username=retail_dba \
+--password=cloudera \
+--warehouse-dir=/user/cloudera/sqoop_import
+
+hadoop fs -ls /user/cloudera/sqoop_import
+
+hadoop fs -ls /user/cloudera/sqoop_import/department
+
+hadoop fs -ls /user/cloudera/sqoop_import/order_items
+
+hadoop fs -tail /user/cloudera/sqoop_import/order_items/part-m-0011
+
+hadoop fs -cat /user/cloudera/sqoop_import/order_items/part-m-*|wc -l  /*172198*/
+
+sqoop eval \
+--connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+--username retail_dbc \
+--password cloudera \
+--query "select count(1) from order_items"
+
+
+
+
+
+hadoop fs -ls /user/hive/warehouse 
+/* hive default database is /user/hive/warehouse
+and *.db are database
+and simple files are tables
+
+ */
+
+hive > create database sqoop_import;
+	dfs -ls /user/hive/warehouse
+	show databases;
+	show tables;
+ 
+
+sqoop import-all-tables \
+  --num-mappers 1 \
+  --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+  --username=retail_dba \
+  --password=cloudera \
+  --hive-import \
+  --hive-overwrite \
+  --create-hive-table \
+  --compress \
+  --compression-codec org.apache.hadoop.io.compress.SnappyCodec \
+  --outdir java_files
+
+hive > show tables;
+	select * from department
+	describe formatted departments;
+	dfs -ls /user/hive/warehouse/departments;
+	dfs -ls /user/cloudera/sqoop_import/departments;
+	dfs -du -s -h /user/cloudera/sqoop_import/departments;
+	dfs -du -s -h /user/cloudera/sqoop_import/order_items;
+	dfs -du -s -h /user/hive/warehouse/order_items;
+	dfs -ls /user/hive/warehouse/order_items;
+	dfs -tail user/hive/warehouse/order_items/part-m-001.snappy;
+	select count(1) from order_items
+
+
+
+
+
+/* we can spify target databse in import-all-tables in hive */
+
+Hive > show tables;
+	use sqoop_import;
+	show tables;
+
+sqoop import-all-tables \
+  --num-mappers 1 \
+  --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+  --username=retail_dba \
+  --password=cloudera \
+  --hive-import \
+  --hive-overwrite \
+  --create-hive-table \
+  --hive-database sqoop_import
+
+Hive > show tables;
+	use sqoop_import;
+	show tables;
+mysql -u retail_dba -p
+mysql > use retail_db;
+	show tbales;
+
+
+
+hadoop fs -ls /user/cloudera/department
+
+sqoop import \
+  --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+  --username=retail_dba \
+  --password=cloudera \
+  --table departments \
+  --target-dir /user/cloudera/departments 
+
+mysql -u retail_dba -p
+mysql > use retail_db;
+	show tbales;
+	describe departments;
+
+hadoop fs -ls /user/cloudera/department 
+
+hadoop fs -cat /user/cloudera/department/part*
+
+hadoop fs -rm -R /user/cloudera/department
+
+sqoop import \
+  --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+  --username=retail_dba \
+  --password=cloudera \
+  --table departments \
+  --target-dir /user/cloudera/departments 
+  -m 2
+  --boundary-query "select min(department_id), max(department_id) from departments where department_id<>8000"
+
+OR
+
+sqoop import \
+  --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+  --username=retail_dba \
+  --password=cloudera \
+  --table departments \
+  --target-dir /user/cloudera/departments 
+  -m 2
+  --boundary-query "select 2, 8 from departments limit 1"
+
+sqoop import \
+  --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+  --username=retail_dba \
+  --password=cloudera \
+  --table departments \
+  --target-dir /user/cloudera/departments 
+  -m 2
+  --boundary-query "select 2, 8 from departments limit 1"
+  --columns department_id,department_name
+
+mysql -u retail_dba -p
+mysql > use retail_db;
+	create table departments_nopk as select * from departments;
+
+sqoop import \
+  --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+  --username=retail_dba \
+  --password=cloudera \
+  --table departments_nopk \
+  --target-dir /user/cloudera/departments 
+
+sqoop import \
+  --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+  --username=retail_dba \
+  --password=cloudera \
+  --table departments_nopk \
+  --target-dir /user/cloudera/departments 
+  -m 4 
+  --split-by department_id
+
+
+-- query and split-by
+sqoop import \
+  --connect "jdbc:mysql://quickstart.cloudera:3306/retail_db" \
+  --username=retail_dba \
+  --password=cloudera \
+  --query="select * from orders join order_items on orders.order_id = order_items.order_item_order_id where \$CONDITIONS" \
+  --target-dir /user/cloudera/order_join \
+  --split-by order_id \
+  --num-mappers 4
