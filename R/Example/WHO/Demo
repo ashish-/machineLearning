@@ -1,0 +1,64 @@
+# Intro to R Lecture
+Country = c("Brazil","China","India","Switzerland","US")
+LifeExpectency = c(74,76,75,83,79)
+Country[1]
+LifeExpectency[3]
+seq(0,100,2)
+CountryData = data.frame(Country,LifeExpectency)
+CountryData
+CountryData$Population = c(199000,139000,124000,7000,318900)
+CountryData
+Country = c("Austraila", "Greece")
+LifeExpectency = c(82,83)
+Position =c (23000,24000)
+NewCountryData = data.frame(Country,LifeExpectency,Position)
+NewCountryData
+
+AllCountrydata = rbind(CountryData,NewCountryData)
+ AllCountrydata = rbind(CountryData, NewCountryData)
+ getwd()
+WHO = read.csv("WHO.csv")
+str(WHO)
+
+summary(WHO)
+
+WHO_Europe = subset(WHO, Region == "Europe")
+str(WHO_Europe)
+
+write.csv(WHO_Europe,"WHO_Europe.csv")
+ls()
+
+rm(WHO_Europe)
+ls()
+
+Under15
+
+WHO$Under15
+
+mean(WHO$Under15)
+
+sd(WHO$Under15)
+
+summary(WHO$Under15)
+
+which.min(WHO$Under15)
+
+WHO$Country[86]
+
+plot(WHO$GNI, WHO$FertilityRate)
+Outliers = subset(WHO, GNI > 10000 & FertilityRate > 2.5)
+nrows(Outliers)
+
+Outliers[c("Country","GNI","FertilityRate")]
+
+hist(WHO$CellularSubscribers)
+boxplot(WHO$LifeExpectancy ~ WHO$Region)
+boxplot(WHO$LifeExpectancy ~ WHO$Region, xlab = "",ylab ="Life Expectancy",main = "Life Expectancy of country by region")
+table(WHO$Region)
+
+tapply(WHO$Over60, WHO$Region, mean)
+
+ tapply(WHO$LiteracyRate, WHO$Region, min,na.rm = TRUE)
+
+table(WHO$Region)
+tapply(WHO$Over60, WHO$Region, mean)

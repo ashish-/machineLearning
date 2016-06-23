@@ -1,0 +1,40 @@
+cps = read.csv("CPSData.csv")
+str(cps)
+
+ table(cps $Industry)
+
+sort(table(cps$Region))
+
+table(cps$Citizenship)
+
+table(cps $Race, cps $Hispanic)
+
+summary(cps)
+
+table(cps$Age, is.na(cps$Married))
+
+table(cps$State, is.na(cps$MetroAreaCode))
+
+sort(tapply(is.na(cps$MetroAreaCode), cps$State, mean))
+
+MetroAreaMap = read.csv("MetroAreaCodes.csv")
+
+CountryMap = read.csv("CountryCodes.csv")
+
+cps = merge(cps, MetroAreaMap, by.x="MetroAreaCode", by.y ="Code", all.x = TRUE)
+
+sort(tapply(cps$Hispanic, cps$MetroArea, mean))
+
+sort(tapply(cps$Race == "Asian", cps$MetroArea, mean))
+
+sort(tapply(cps$Education == "No high school diploma", cps$MetroArea,mean,na.rm=TRUE))
+
+cps = merge(cps, CountryMap, by.x="CountryOfBirthCode", by.y ="Code", all.x = TRUE)
+
+sort(table(cps$Country))
+
+table(cps$MetroArea == "New York-Northern New Jersey-Long Island, NY-NJ-PA", cps$Country !="United States")
+
+sort(tapply(cps$Country =="India", cps$MetroArea, sum,na.rm=TRUE))
+
+
